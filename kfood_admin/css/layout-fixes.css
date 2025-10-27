@@ -1,0 +1,159 @@
+/* Reset main content structure */
+.main-content {
+    margin-left: 240px !important;
+    padding: 0 !important;
+    width: calc(100% - 240px) !important;
+    min-height: 100vh !important;
+    background: #1a1c23 !important;
+}
+
+/* Base container for all sections */
+#landing-settings-section,
+#user-roles-section,
+#user-accounts-section {
+    padding: 30px !important;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background: transparent !important;
+}
+
+/* Section content wrapper */
+.restaurant-branding,
+.hero-section,
+.role-cards-container,
+.user-accounts-container {
+    background: #2a2d3a !important;
+    border-radius: 12px !important;
+    padding: 30px !important;
+    margin-bottom: 30px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Landing page specific */
+.landing-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 30px !important;
+}
+
+.input-field {
+    background: #32364a !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    width: 100% !important;
+    color: white !important;
+}
+
+/* Role cards grid */
+.role-cards {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 30px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.role-card {
+    background: #32364a !important;
+    border-radius: 12px !important;
+    padding: 30px !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* User accounts table */
+.table-responsive {
+    width: 100% !important;
+    overflow-x: auto !important;
+    background: #2a2d3a !important;
+    border-radius: 12px !important;
+    margin: 0 !important;
+}
+
+.user-accounts-table {
+    width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+}
+
+.user-accounts-table th {
+    background: #32364a !important;
+    padding: 15px !important;
+    text-align: left !important;
+    color: white !important;
+    font-weight: 500 !important;
+}
+
+.user-accounts-table td {
+    padding: 15px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Header section */
+.section-header {
+    margin-bottom: 30px !important;
+    padding-bottom: 15px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Dropzone styling */
+.dropzone {
+    border: 2px dashed rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px !important;
+    padding: 30px !important;
+    text-align: center !important;
+    background: #32364a !important;
+    margin-top: 15px !important;
+}
+
+/* Search and filter controls */
+.search-container,
+.filter-container {
+    margin-bottom: 20px !important;
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+}
+
+.search-input,
+.filter-select {
+    background: #32364a !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 8px !important;
+    padding: 10px 15px !important;
+    color: white !important;
+    width: auto !important;
+}
+
+/* Fix section spacing */
+.section-container {
+    margin-bottom: 0 !important;
+}
+
+/* Restaurant branding and hero sections */
+.branding-section,
+.hero-section {
+    margin-bottom: 30px !important;
+}
+
+/* Button styling */
+.action-button {
+    background: #FF7F50 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 12px 24px !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+    transition: background 0.3s ease !important;
+}
+
+.action-button:hover {
+    background: #ff6b3d !important;
+}

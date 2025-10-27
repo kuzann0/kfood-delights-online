@@ -1,0 +1,562 @@
+// Update cart count in nav bar
+function updateCartCount() {
+    const cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+    const count = cart.reduce((total, item) => total + parseInt(item.quantity), 0);
+    const cartCount = document.querySelector('.cart-count');
+    if (cartCount) {
+        cartCount.textContent = count;
+        cartCount.style.display = count > 0 ? 'flex' : 'none';
+    }
+}
+
+// Show notification with optional type
+function showNotification(message, type = 'success') {
+    // Find any existing notification
+    const existingNotification = document.querySelector('.cart-notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+
+    const notification = document.createElement('div');
+    notification.className = `cart-notification ${type}`;
+    notification.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        <span>${message}</span>
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('show');
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 2000);
+    }, 100);
+}
+
+// Function to update cart total price
+function updateCartTotalPrice() {
+    console.log('Updating cart total price...'); // Debug log
+    const cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+    const cartItems = document.getElementById('cartItems');
+    const cartSubtotal = document.getElementById('cartSubtotal');
+    
+    if (!cartItems || !cartSubtotal) {
+        console.error('Required elements not found');
+        return;
+    }
+
+    let subtotal = 0;
+    let checkedItems = [];
+    let selectedCount = 0;
+
+    // Get all checked items
+    const checkboxes = cartItems.querySelectorAll('.simple-checkbox');
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            const itemId = checkbox.getAttribute('data-id');
+            const cartItem = cart.find(item => item.id.toString() === itemId.toString());
+            if (cartItem) {
+                checkedItems.push(cartItem);
+                subtotal += parseFloat(cartItem.price) * parseInt(cartItem.quantity);
+                selectedCount++;
+            }
+        }
+    });
+
+    // Store checked items for checkout
+    sessionStorage.setItem('checkedItems', JSON.stringify(checkedItems));
+    sessionStorage.setItem('selectedItems', JSON.stringify(checkedItems.map(item => item.id)));
+
+    // Update the display
+    let itemizedList = '';
+    checkedItems.forEach(item => {
+        const itemTotal = parseFloat(item.price) * parseInt(item.quantity);
+        itemizedList += `
+            <div class="subtotal-row item-detail">
+                <div class="item-info">
+                    <span class="item-name">${item.name}</span>
+                    <span class="item-quantity">(${item.quantity}x)</span>
+                </div>
+                <span class="item-subtotal">₱${itemTotal.toFixed(2)}</span>
+            </div>
+        `;
+    });
+
+    cartSubtotal.innerHTML = `
+        <div class="subtotal-breakdown">
+            <div class="breakdown-header">
+                <span>Order Summary (${selectedCount} items)</span>
+            </div>
+            <div class="itemized-list">
+                ${itemizedList || '<div class="no-items-selected">No items selected</div>'}
+            </div>
+            ${selectedCount > 0 ? `
+                <div class="subtotal-divider"></div>
+                <div class="subtotal-final">
+                    <span>Total Amount:</span>
+                    <span class="total-amount">₱${subtotal.toFixed(2)}</span>
+                </div>
+            ` : ''}
+        </div>
+    `;
+
+    // Enable/disable checkout button based on selection
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    if (checkoutBtn) {
+        checkoutBtn.disabled = selectedCount === 0;
+        if (selectedCount === 0) {
+            checkoutBtn.classList.add('disabled');
+        } else {
+            checkoutBtn.classList.remove('disabled');
+        }
+    }
+}
+
+// Add to cart function
+async function addToCart(productCard) {
+    if (!productCard) {
+        console.error('No product card provided');
+        showNotification('Error adding item to cart', 'error');
+        return;
+    }
+
+    try {
+        // Extract product details
+        const productDetails = await extractProductDetails(productCard);
+        if (!productDetails) {
+            throw new Error('Could not extract product details');
+        }
+
+        const { id, name, price, image } = productDetails;
+
+        // Check stock availability
+        const stockData = await checkStockAvailability(id);
+        if (!stockData || stockData.stock <= 0) {
+            showNotification('Item is out of stock', 'error');
+            return;
+        }
+
+        // Update cart
+        const cart = await updateCartWithItem(id, name, price, image, stockData.stock);
+        if (!cart) {
+            throw new Error('Failed to update cart');
+        }
+
+        // Update UI
+        updateCartCount();
+        const cartModal = document.getElementById('cartModal');
+        if (cartModal && cartModal.style.display === 'block') {
+            await updateCartDisplay();
+        }
+
+    } catch (error) {
+        console.error('Error in addToCart:', error);
+        showNotification(error.message || 'Error adding item to cart', 'error');
+    }
+}
+
+// Helper function to extract product details
+async function extractProductDetails(productCard) {
+    // Get product ID
+    const id = productCard.dataset.id || 
+              productCard.dataset.productId || 
+              productCard.querySelector('[data-product-id]')?.dataset.productId ||
+              productCard.querySelector('[data-id]')?.dataset.id;
+           
+    if (!id) {
+        throw new Error('Product ID not found');
+    }
+
+    // Get product name
+    const nameElement = productCard.querySelector('.card-title') || 
+                      productCard.querySelector('h3') ||
+                      productCard.querySelector('.product-name');
+    if (!nameElement) {
+        throw new Error('Product name not found');
+    }
+    const name = nameElement.textContent.trim();
+
+    // Get product price
+    const priceElement = productCard.querySelector('.price') || 
+                       productCard.querySelector('.product-price') ||
+                       productCard.querySelector('[data-price]');
+    if (!priceElement) {
+        throw new Error('Price element not found');
+    }
+    const priceText = priceElement.dataset.price || priceElement.textContent;
+    const price = parseFloat(priceText.replace(/[^\d.]/g, ''));
+    if (isNaN(price)) {
+        throw new Error('Invalid price format');
+    }
+
+    // Get product image
+    const imageElement = productCard.querySelector('.product-image img') || 
+                       productCard.querySelector('img.product-img') ||
+                       productCard.querySelector('img');
+    if (!imageElement) {
+        throw new Error('Image element not found');
+    }
+    const imageSrc = imageElement.getAttribute('src');
+    if (!imageSrc) {
+        throw new Error('Image source not found');
+    }
+    const image = imageSrc.split('/').pop();
+    return { id, name, price, image };
+}
+
+// Helper function to check stock availability
+async function checkStockAvailability(id) {
+    try {
+        const response = await fetch(`check_stock.php?id=${id}`);
+        if (!response.ok) {
+            throw new Error('Failed to check stock');
+        }
+        
+        const data = await response.json();
+        if (!data.success) {
+            throw new Error(data.message || 'Error checking stock');
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Stock check error:', error);
+        throw new Error('Error checking stock availability');
+    }
+}
+
+// Helper function to update cart with new item
+async function updateCartWithItem(id, name, price, image, maxStock) {
+    try {
+        let cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+        const existingItem = cart.find(item => item.id === id);
+
+        if (existingItem) {
+            if (existingItem.quantity >= maxStock) {
+                throw new Error('Cannot add more - stock limit reached');
+            }
+            existingItem.quantity++;
+            showNotification('Cart quantity updated', 'success');
+        } else {
+            cart.push({ id, name, price, image, quantity: 1 });
+            showNotification('Item added to cart', 'success');
+        }
+
+        sessionStorage.setItem('cart', JSON.stringify(cart));
+        return cart;
+    } catch (error) {
+        console.error('Cart update error:', error);
+        throw error;
+    }
+}
+
+        // Check stock before adding
+        try {
+            const response = await fetch(`check_stock.php?id=${id}`);
+            if (!response.ok) {
+                throw new Error('Failed to check stock');
+            }
+            
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.message || 'Error checking stock');
+            }
+
+            if (data.stock <= 0) {
+                showNotification('Item is out of stock', 'error');
+                return;
+            }
+        } catch (error) {
+            console.error('Stock check error:', error);
+            showNotification('Error checking stock availability', 'error');
+            return;
+        }
+
+        // Get current cart
+        let cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+        const existingItem = cart.find(item => item.id === id);
+
+        if (existingItem) {
+            if (existingItem.quantity >= data.stock) {
+                showNotification('Cannot add more - stock limit reached', 'error');
+                return;
+            }
+            existingItem.quantity++;
+            showNotification('Cart quantity updated', 'success');
+        } else {
+            cart.push({ id, name, price, image, quantity: 1 });
+            showNotification('Item added to cart', 'success');
+        }
+
+        sessionStorage.setItem('cart', JSON.stringify(cart));
+        updateCartCount();
+
+        // Update cart display if modal is open
+        const cartModal = document.getElementById('cartModal');
+        if (cartModal && cartModal.style.display === 'block') {
+            await updateCartDisplay();
+        }
+
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        showNotification(error.message || 'Error adding item to cart', 'error');
+    }
+
+        let cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+        const existingItem = cart.find(item => item.id === id);
+
+        if (existingItem) {
+            if (existingItem.quantity >= data.stock) {
+                showNotification('Cannot add more - stock limit reached', 'error');
+                return;
+            }
+            existingItem.quantity++;
+            showNotification('Cart quantity updated', 'success');
+        } else {
+            cart.push({ id, name, price, image, quantity: 1 });
+            showNotification('Item added to cart', 'success');
+        }
+
+        sessionStorage.setItem('cart', JSON.stringify(cart));
+        updateCartCount();
+        
+        const cartModal = document.getElementById('cartModal');
+        if (cartModal && cartModal.style.display === 'block') {
+            await updateCartDisplay();
+        }
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        showNotification(error.message || 'Error adding item to cart', 'error');
+    }
+}
+
+// Update cart display in modal
+async function updateCartDisplay() {
+    console.log('Updating cart display');
+    const cartItems = document.getElementById('cartItems');
+    if (!cartItems) {
+        console.error('Cart items container not found');
+        return;
+    }
+
+    const cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+
+    if (cart.length === 0) {
+        cartItems.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+        updateCartTotalPrice();
+        return;
+    }
+
+    cartItems.innerHTML = '';
+    for (const item of cart) {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'cart-item';
+        itemDiv.setAttribute('data-id', item.id);
+        
+        // Get current stock for the item
+        let stockInfo = '...';
+        try {
+            const response = await fetch(`check_stock.php?id=${item.id}`);
+            const data = await response.json();
+            if (data.success) {
+                stockInfo = data.stock;
+                // Adjust quantity if it exceeds available stock
+                if (item.quantity > data.stock) {
+                    item.quantity = data.stock;
+                    const updatedCart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+                    const cartItem = updatedCart.find(i => i.id === item.id);
+                    if (cartItem) {
+                        cartItem.quantity = data.stock;
+                        sessionStorage.setItem('cart', JSON.stringify(updatedCart));
+                        showNotification(`Quantity adjusted to available stock (${data.stock})`, 'error');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error checking stock:', error);
+            stockInfo = 'Error checking stock';
+        }
+        
+        itemDiv.innerHTML = `
+            <div class="checkbox-wrapper">
+                <input type="checkbox" class="simple-checkbox" id="checkbox-${item.id}" data-id="${item.id}">
+                <label class="checkbox-label" for="checkbox-${item.id}"></label>
+            </div>
+            <img src="uploaded_img/${item.image}" alt="${item.name}" class="cart-item-image">
+            <div class="cart-item-details">
+                <h3>${item.name}</h3>
+                <div class="stock-info">Available Stock: <span>${stockInfo}</span></div>
+                <div class="price">₱${(item.price * item.quantity).toFixed(2)}</div>
+                <div class="controls">
+                    <button type="button" class="btn minus" data-id="${item.id}">-</button>
+                    <input type="number" class="quantity-input" value="${item.quantity}" min="1" max="${stockInfo}">
+                    <button type="button" class="btn plus" data-id="${item.id}">+</button>
+                    <button type="button" class="remove" data-id="${item.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Add event listeners for quantity input
+        const quantityInput = itemDiv.querySelector('.quantity-input');
+        const stockSpan = itemDiv.querySelector('.stock-info span');
+        const maxStock = parseInt(stockSpan.textContent) || 0;
+
+        quantityInput.addEventListener('input', function() {
+            let value = parseInt(this.value) || 0;
+            
+            // Enforce limits
+            if (value < 1) value = 1;
+            if (value > maxStock) {
+                value = maxStock;
+                showNotification(`Maximum available stock is ${maxStock}`, 'error');
+            }
+            
+            // Update cart and display
+            let cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+            const cartItem = cart.find(i => i.id === item.id);
+            if (cartItem) {
+                cartItem.quantity = value;
+                sessionStorage.setItem('cart', JSON.stringify(cart));
+                this.value = value;
+                itemDiv.querySelector('.price').textContent = `₱${(cartItem.price * value).toFixed(2)}`;
+                updateCartTotalPrice();
+                updateCartCount();
+            }
+        });
+
+        quantityInput.addEventListener('blur', function() {
+            if (this.value === '' || parseInt(this.value) < 1) {
+                this.value = '1';
+                this.dispatchEvent(new Event('input'));
+            }
+        });
+
+        cartItems.appendChild(itemDiv);
+    }
+    
+    updateCartTotalPrice();
+}
+
+// Initialize cart functionality
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Initializing cart functionality'); // Debug log
+    updateCartCount();
+
+    // Add event delegation for all cart interactions
+    document.body.addEventListener('click', async (e) => {
+        const target = e.target;
+        console.log('Click event target:', target); // Debug log
+
+        // Handle add to cart button clicks - supporting multiple button classes
+        if (target.closest('.add-to-cart-btn') || 
+            target.closest('.btn-add-to-cart') || 
+            target.classList.contains('add-to-cart-btn') || 
+            target.classList.contains('btn-add-to-cart')) {
+            
+            const addToCartBtn = target.closest('.add-to-cart-btn') || 
+                               target.closest('.btn-add-to-cart') || 
+                               target;
+            
+            const productCard = addToCartBtn.closest('.product-card') || 
+                              addToCartBtn.closest('.menu-item') || 
+                              addToCartBtn.closest('.product-item');
+            
+            if (productCard) {
+                await addToCart(productCard);
+            } else {
+                console.error('Product card not found for add to cart button:', addToCartBtn);
+            }
+        }
+
+        // Handle checkbox interactions
+        if (target.classList.contains('simple-checkbox') || target.closest('.checkbox-wrapper')) {
+            const cartItem = target.closest('.cart-item');
+            const checkbox = cartItem ? cartItem.querySelector('.simple-checkbox') : null;
+            
+            if (checkbox) {
+                if (target !== checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                }
+                cartItem.classList.toggle('selected', checkbox.checked);
+                updateCartTotalPrice();
+            }
+        }
+
+        // Handle quantity buttons and remove
+        if (target.closest('.cart-item')) {
+            const cartItem = target.closest('.cart-item');
+            const id = cartItem.dataset.id;
+            const quantityInput = cartItem.querySelector('.quantity-input');
+            const stockSpan = cartItem.querySelector('.stock-info span');
+            const maxStock = parseInt(stockSpan.textContent) || 0;
+
+            if (target.classList.contains('plus') || target.classList.contains('minus') || 
+                target.classList.contains('remove') || target.closest('.remove')) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                let cart = JSON.parse(sessionStorage.getItem('cart') || '[]');
+                const cartItemIndex = cart.findIndex(item => item.id.toString() === id.toString());
+
+                if (cartItemIndex !== -1) {
+                    if (target.classList.contains('plus')) {
+                        const newQuantity = parseInt(quantityInput.value) + 1;
+                        if (newQuantity <= maxStock) {
+                            cart[cartItemIndex].quantity = newQuantity;
+                            quantityInput.value = newQuantity;
+                            cartItem.querySelector('.price').textContent = `₱${(cart[cartItemIndex].price * newQuantity).toFixed(2)}`;
+                        } else {
+                            showNotification(`Maximum available stock is ${maxStock}`, 'error');
+                        }
+                    } else if (target.classList.contains('minus')) {
+                        const newQuantity = parseInt(quantityInput.value) - 1;
+                        if (newQuantity >= 1) {
+                            cart[cartItemIndex].quantity = newQuantity;
+                            quantityInput.value = newQuantity;
+                            cartItem.querySelector('.price').textContent = `₱${(cart[cartItemIndex].price * newQuantity).toFixed(2)}`;
+                        }
+                    } else if (target.classList.contains('remove') || target.closest('.remove')) {
+                        cart.splice(cartItemIndex, 1);
+                        cartItem.remove();
+                        showNotification('Item removed from cart');
+                    }
+
+                    sessionStorage.setItem('cart', JSON.stringify(cart));
+                    updateCartTotalPrice();
+                    updateCartCount();
+
+                    if (cart.length === 0) {
+                        document.getElementById('cartItems').innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+                    }
+                }
+            }
+        }
+    });
+
+    // Cart modal handlers
+    const cartBtn = document.getElementById('cartBtn');
+    const cartModal = document.getElementById('cartModal');
+    const closeCartBtn = document.getElementById('closeCartBtn');
+
+    if (cartBtn && cartModal) {
+        cartBtn.addEventListener('click', () => {
+            cartModal.style.display = 'block';
+            updateCartDisplay();
+        });
+    }
+
+    if (closeCartBtn && cartModal) {
+        closeCartBtn.addEventListener('click', () => {
+            cartModal.style.display = 'none';
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === cartModal) {
+                cartModal.style.display = 'none';
+            }
+        });
+    }
+});

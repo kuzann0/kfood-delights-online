@@ -1,0 +1,32 @@
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 500;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.status-badge.out-of-stock {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: #EF5350;
+    border: 1px solid #EF5350;
+}
+
+.status-badge.low-stock {
+    background-color: rgba(255, 152, 0, 0.1);
+    color: #FFA726;
+    border: 1px solid #FFA726;
+}
+
+.status-badge.sufficient {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+}
+
+.status-badge.overstocked {
+    background-color: rgba(33, 150, 243, 0.1);
+    color: #2196F3;
+    border: 1px solid #2196F3;
+}

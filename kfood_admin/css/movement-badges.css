@@ -1,0 +1,45 @@
+.filter-group select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9em;
+    width: 200px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.filter-group select:hover {
+    border-color: #aaa;
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+.movement-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.movement-badge.fast-moving {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+    border: 1px solid #4CAF50;
+}
+
+.movement-badge.slow-moving {
+    background-color: rgba(255, 152, 0, 0.1);
+    color: #FFA726;
+    border: 1px solid #FFA726;
+}
+
+.movement-badge.non-moving {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: #EF5350;
+    border: 1px solid #EF5350;
+}

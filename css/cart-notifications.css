@@ -1,0 +1,124 @@
+.cart-notification {
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    background-color: #4CAF50 !important;
+    color: white !important;
+    padding: 15px 25px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    z-index: 999999 !important;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    font-size: 16px !important;
+    min-width: 250px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    max-width: 80vw !important;
+    margin: 0 !important;
+}
+
+.cart-notification i {
+    font-size: 20px;
+}
+
+.cart-notification.show {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    pointer-events: auto !important;
+}
+
+.cart-notification.success {
+    background-color: #4CAF50 !important;
+}
+
+.cart-notification.error {
+    background-color: #f44336 !important;
+}
+
+.cart-notification.info {
+    background-color: #2196F3 !important;
+}
+
+.cart-notification i {
+    font-size: 20px !important;
+    margin-right: 8px !important;
+}
+
+.cart-notification span {
+    flex: 1 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.stock-info {
+    font-size: 0.9em;
+    color: #666;
+    margin: 5px 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.stock-info span {
+    font-weight: 600;
+    color: #28a745;
+}
+
+.quantity-input {
+    width: 60px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 6px 4px;
+    margin: 0 5px;
+    font-size: 14px;
+    appearance: textfield;
+    -moz-appearance: textfield;
+    -webkit-appearance: textfield;
+}
+
+.quantity-input::-webkit-inner-spin-button,
+.quantity-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.quantity-input:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    background: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    background: #f8f9fa;
+}
+
+.btn.remove {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn.remove:hover {
+    background: #dc3545;
+    color: #fff;
+}

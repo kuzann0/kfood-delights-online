@@ -1,0 +1,50 @@
+/* Movement filter styles */
+.filter-container {
+    display: flex !important;
+    gap: 15px !important;
+    align-items: center !important;
+    margin-left: auto !important;
+}
+
+.filter-select {
+    background: #32364a !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    padding: 8px 12px !important;
+    border-radius: 6px !important;
+    min-width: 150px !important;
+}
+
+#movementFilter {
+    min-width: 180px !important;
+}
+
+/* Movement indicator styles */
+.product-card {
+    position: relative !important;
+    border-left: 4px solid transparent !important;
+    transition: border-color 0.3s ease !important;
+}
+
+.product-card.fast-moving {
+    border-left-color: #4CAF50 !important;
+}
+
+.product-card.slow-moving {
+    border-left-color: #FFA726 !important;
+}
+
+.product-card.non-moving {
+    border-left-color: #EF5350 !important;
+}
+
+/* Dark theme support */
+[data-theme="dark"] .filter-select {
+    background: #32364a !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .filter-select option {
+    background: #32364a !important;
+    color: white !important;
+}

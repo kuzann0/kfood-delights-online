@@ -1,0 +1,27 @@
+.stats-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255, 127, 80, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.stats-icon i {
+    font-size: 24px;
+    transition: all 0.3s ease;
+}
+
+.stat-number {
+    font-size: 28px;
+    font-weight: 600;
+    margin: 10px 0;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .stats-icon {
+    background: rgba(255, 127, 80, 0.15);
+}

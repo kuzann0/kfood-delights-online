@@ -1,0 +1,53 @@
+/* Movement category styles */
+table tr {
+    transition: all 0.3s ease !important;
+    border-left: 4px solid transparent !important;
+}
+
+/* Fast moving indicators */
+table tr.fast-moving {
+    border-left-color: #4CAF50 !important;
+    background: rgba(76, 175, 80, 0.1) !important;
+}
+
+/* Slow moving indicators */
+table tr.slow-moving {
+    border-left-color: #FFA726 !important;
+    background: rgba(255, 167, 38, 0.1) !important;
+}
+
+/* Non moving indicators */
+table tr.non-moving {
+    border-left-color: #EF5350 !important;
+    background: rgba(239, 83, 80, 0.1) !important;
+}
+
+/* Movement filter dropdown styling */
+#movementFilter {
+    background: #32364a !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    padding: 8px 12px !important;
+    border-radius: 6px !important;
+    min-width: 180px !important;
+    margin-right: 10px !important;
+}
+
+#movementFilter:focus {
+    border-color: #FF7F50 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(255, 127, 80, 0.2) !important;
+}
+
+/* Dark theme support */
+[data-theme="dark"] table tr.fast-moving {
+    background: rgba(76, 175, 80, 0.05) !important;
+}
+
+[data-theme="dark"] table tr.slow-moving {
+    background: rgba(255, 167, 38, 0.05) !important;
+}
+
+[data-theme="dark"] table tr.non-moving {
+    background: rgba(239, 83, 80, 0.05) !important;
+}
